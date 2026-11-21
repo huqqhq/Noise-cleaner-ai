@@ -1,0 +1,346 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user account profile isolated to the owner and admins.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Authentication user ID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Google account display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 160,
+          "description": "Verified Google email address."
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Google profile avatar URL."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of account creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last profile update."
+        }
+      },
+      "required": ["uid", "displayName", "email", "photoURL", "createdAt", "updatedAt"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Monthly Rs. 49 UPI subscription activated via UTR submission and revocable by admin.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Owner Firebase Auth UID."
+        },
+        "userEmail": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 160,
+          "description": "Subscriber email for admin verification."
+        },
+        "userName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Subscriber display name."
+        },
+        "utr": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9]+$",
+          "description": "Submitted UPI Transaction Reference (UTR) number."
+        },
+        "paymentApp": {
+          "type": "string",
+          "enum": ["phonepe", "paytm", "upi"],
+          "description": "UPI app used for payment."
+        },
+        "upiId": {
+          "type": "string",
+          "enum": ["9990232974@axl"],
+          "description": "Merchant UPI ID paid to."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Monthly plan amount in INR (49)."
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["monthly_49"],
+          "description": "Subscription tier identifier."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "revoked"],
+          "description": "Subscription access state."
+        },
+        "revokedReason": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional reason set by admin when revoking a fake UTR."
+        },
+        "revokeCount": {
+          "type": "integer",
+          "description": "Total number of times admin revoked this subscription; >= 2 permanently bans the account."
+        },
+        "expiresAtMs": {
+          "type": "number",
+          "description": "Subscription expiry timestamp in epoch milliseconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial activation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest update."
+        }
+      },
+      "required": [
+        "userId",
+        "userEmail",
+        "userName",
+        "utr",
+        "paymentApp",
+        "upiId",
+        "amount",
+        "plan",
+        "status",
+        "revokedReason",
+        "expiresAtMs",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UtrClaim": {
+      "title": "UtrClaim",
+      "description": "Immutable uniqueness guard ensuring each UTR string can only be claimed once.",
+      "type": "object",
+      "properties": {
+        "utr": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9]+$",
+          "description": "Normalized uppercase UTR string matching document ID."
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the user who claimed this UTR."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when UTR was claimed."
+        }
+      },
+      "required": ["utr", "userId", "createdAt"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Audit log of every Rs. 49 UPI UTR submission for admin review and user billing history.",
+      "type": "object",
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique payment document ID."
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the paying user."
+        },
+        "userEmail": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 160,
+          "description": "Email of the paying user."
+        },
+        "userName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Name of the paying user."
+        },
+        "utr": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9]+$",
+          "description": "Submitted UTR reference."
+        },
+        "paymentApp": {
+          "type": "string",
+          "enum": ["phonepe", "paytm", "upi"],
+          "description": "Selected UPI app."
+        },
+        "upiId": {
+          "type": "string",
+          "enum": ["9990232974@axl"],
+          "description": "Destination UPI ID."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount paid in INR (49)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["approved", "revoked"],
+          "description": "Approval state of this payment entry."
+        },
+        "revokedReason": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Admin revocation note if flagged as fake UTR."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of UTR submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest status update."
+        }
+      },
+      "required": [
+        "paymentId",
+        "userId",
+        "userEmail",
+        "userName",
+        "utr",
+        "paymentApp",
+        "upiId",
+        "amount",
+        "status",
+        "revokedReason",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProcessingJob": {
+      "title": "ProcessingJob",
+      "description": "Metadata record of an audio or video noise removal job executed by an active subscriber.",
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique processing job ID."
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the user who ran the job."
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Original filename of the processed media."
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["audio", "video"],
+          "description": "Whether the input file was audio or video."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["balanced", "maximum", "natural"],
+          "description": "Neural isolation profile used."
+        },
+        "durationSec": {
+          "type": "number",
+          "description": "Media duration in seconds."
+        },
+        "noiseReductionDb": {
+          "type": "number",
+          "description": "Measured noise floor reduction in decibels."
+        },
+        "speechPreservationPct": {
+          "type": "number",
+          "description": "Measured speaker speech preservation percentage."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of processing completion."
+        }
+      },
+      "required": [
+        "jobId",
+        "userId",
+        "fileName",
+        "mediaType",
+        "mode",
+        "durationSec",
+        "noiseReductionDb",
+        "speechPreservationPct",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User account profiles containing PII, strictly restricted to owner or admin."
+    },
+    "/subscriptions/{userId}": {
+      "schema": { "$ref": "#/entities/Subscription" },
+      "description": "Active or revoked monthly Rs. 49 subscriptions keyed by userId."
+    },
+    "/utrClaims/{utrId}": {
+      "schema": { "$ref": "#/entities/UtrClaim" },
+      "description": "Immutable uniqueness index preventing duplicate UTR reuse."
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentRecord" },
+      "description": "Audit log of all UPI UTR submissions."
+    },
+    "/processingJobs/{jobId}": {
+      "schema": { "$ref": "#/entities/ProcessingJob" },
+      "description": "Noise removal job metadata records per user."
+    }
+  }
+}

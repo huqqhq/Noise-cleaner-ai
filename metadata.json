@@ -1,0 +1,6 @@
+{
+  "name": "Noiser Remover AI",
+  "description": "AI vocal isolation and background noise removal studio for audio and video files. Eliminates fan hum, traffic, horns, and ambient noise while keeping the speaker voice crystal clear.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,299 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // Global Hardened Primitives
+    // =========================================================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isBootstrapAdmin() {
+      return isVerifiedUser()
+        && request.auth.token.email == 'sanjeeta1320@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrapAdmin()
+        || (isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUtr(utr) {
+      return utr is string && utr.size() >= 8 && utr.size() <= 32 && utr.matches('^[A-Z0-9]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSubNotBanned(subData) {
+      return !('revokeCount' in subData) || subData.revokeCount < 2;
+    }
+
+    function isNotBanned() {
+      return !exists(/databases/$(database)/documents/subscriptions/$(request.auth.uid))
+        || isSubNotBanned(get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data);
+    }
+
+    // =========================================================================
+    // Entity Validation Blueprints (Anti-Update-Gap)
+    // =========================================================================
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'photoURL', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 160
+        && data.photoURL is string && data.photoURL.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSubscription(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'userEmail', 'userName', 'utr', 'paymentApp', 'upiId',
+          'amount', 'plan', 'status', 'revokedReason', 'expiresAtMs', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'userEmail', 'userName', 'utr', 'paymentApp', 'upiId',
+          'amount', 'plan', 'status', 'revokedReason', 'revokeCount', 'expiresAtMs', 'createdAt', 'updatedAt'
+        ])
+        && data.userId is string && data.userId == userId && isValidId(data.userId)
+        && data.userEmail is string && data.userEmail.size() >= 3 && data.userEmail.size() <= 160
+        && data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 120
+        && isValidUtr(data.utr)
+        && data.paymentApp is string && data.paymentApp in ['phonepe', 'paytm', 'upi']
+        && data.upiId is string && data.upiId == '9990232974@axl'
+        && data.amount is number && data.amount == 49
+        && data.plan is string && data.plan == 'monthly_49'
+        && data.status is string && data.status in ['active', 'revoked']
+        && data.revokedReason is string && data.revokedReason.size() <= 200
+        && (!('revokeCount' in data) || (data.revokeCount is int && data.revokeCount >= 0 && data.revokeCount <= 1000))
+        && data.expiresAtMs is number && data.expiresAtMs > 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUtrClaim(data, utrId) {
+      return data.keys().hasAll(['utr', 'userId', 'createdAt'])
+        && data.keys().hasOnly(['utr', 'userId', 'createdAt'])
+        && isValidUtr(data.utr) && data.utr == utrId
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidPaymentRecord(data, paymentId) {
+      return data.keys().hasAll([
+          'paymentId', 'userId', 'userEmail', 'userName', 'utr', 'paymentApp',
+          'upiId', 'amount', 'status', 'revokedReason', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'paymentId', 'userId', 'userEmail', 'userName', 'utr', 'paymentApp',
+          'upiId', 'amount', 'status', 'revokedReason', 'createdAt', 'updatedAt'
+        ])
+        && data.paymentId is string && data.paymentId == paymentId && isValidId(data.paymentId)
+        && data.userId is string && isValidId(data.userId)
+        && data.userEmail is string && data.userEmail.size() >= 3 && data.userEmail.size() <= 160
+        && data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 120
+        && isValidUtr(data.utr)
+        && data.paymentApp is string && data.paymentApp in ['phonepe', 'paytm', 'upi']
+        && data.upiId is string && data.upiId == '9990232974@axl'
+        && data.amount is number && data.amount == 49
+        && data.status is string && data.status in ['approved', 'revoked']
+        && data.revokedReason is string && data.revokedReason.size() <= 200
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProcessingJob(data, jobId) {
+      return data.keys().hasAll([
+          'jobId', 'userId', 'fileName', 'mediaType', 'mode',
+          'durationSec', 'noiseReductionDb', 'speechPreservationPct', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'jobId', 'userId', 'fileName', 'mediaType', 'mode',
+          'durationSec', 'noiseReductionDb', 'speechPreservationPct', 'createdAt'
+        ])
+        && data.jobId is string && data.jobId == jobId && isValidId(data.jobId)
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 200
+        && data.mediaType is string && data.mediaType in ['audio', 'video']
+        && data.mode is string && data.mode in ['balanced', 'maximum', 'natural']
+        && data.durationSec is number && data.durationSec >= 0 && data.durationSec <= 14400
+        && data.noiseReductionDb is number && data.noiseReductionDb >= 0 && data.noiseReductionDb <= 100
+        && data.speechPreservationPct is number && data.speechPreservationPct >= 0 && data.speechPreservationPct <= 100
+        && data.createdAt is timestamp;
+    }
+
+    // =========================================================================
+    // Collection Rules
+    // =========================================================================
+
+    // 1. User Profiles (PII Isolated: Owner or Admin only)
+    match /users/{userId} {
+      allow get: if isVerifiedUser() && isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isBootstrapAdmin();
+
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isValidUserProfile(incoming(), userId)
+        && isValidId(userId)
+        && isOwner(userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'photoURL', 'updatedAt']);
+
+      allow delete: if false;
+    }
+
+    // 2. Subscriptions (Rs. 49 Monthly UPI Auto-Approve + Admin Revocation & 2-Strike Permanent Ban)
+    match /subscriptions/{userId} {
+      allow get: if isVerifiedUser() && isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isVerifiedUser() && (existing().userId == request.auth.uid || isBootstrapAdmin());
+
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && isValidSubscription(incoming(), userId)
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'active'
+        && incoming().revokedReason == ''
+        && 'revokeCount' in incoming()
+        && incoming().revokeCount == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/utrClaims/$(incoming().utr));
+
+      allow update: if isValidSubscription(incoming(), userId)
+        && isValidId(userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          // Action 1: Admin Revoke (increments revokeCount) or Restore/Unban (resets revokeCount)
+          (
+            isAdmin()
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'revokedReason', 'revokeCount', 'expiresAtMs', 'updatedAt'
+            ])
+          )
+          ||
+          // Action 2: Subscriber Renews or Re-submits a NEW unique UTR (blocked permanently once revokeCount >= 2)
+          (
+            isOwner(userId)
+            && isSubNotBanned(existing())
+            && incoming().status == 'active'
+            && incoming().revokedReason == ''
+            && incoming().utr != existing().utr
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'utr', 'paymentApp', 'status', 'revokedReason', 'expiresAtMs', 'userName', 'userEmail', 'updatedAt'
+            ])
+            && existsAfter(/databases/$(database)/documents/utrClaims/$(incoming().utr))
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // 3. UTR Uniqueness Claims (Immutable once created; permanently banned users cannot claim new UTRs)
+    match /utrClaims/{utrId} {
+      allow get: if isVerifiedUser() && isValidUtr(utrId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isBootstrapAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidUtr(utrId)
+        && isValidUtrClaim(incoming(), utrId)
+        && incoming().createdAt == request.time
+        && (isAdmin() || isNotBanned());
+
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // 4. Payment Audit Ledger (Permanently banned users cannot submit new payments)
+    match /payments/{paymentId} {
+      allow get: if isVerifiedUser() && isValidId(paymentId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && (existing().userId == request.auth.uid || isBootstrapAdmin());
+
+      allow create: if isVerifiedUser()
+        && isValidId(paymentId)
+        && isValidPaymentRecord(incoming(), paymentId)
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'approved'
+        && incoming().revokedReason == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (isAdmin() || isNotBanned())
+        && existsAfter(/databases/$(database)/documents/utrClaims/$(incoming().utr));
+
+      allow update: if isValidPaymentRecord(incoming(), paymentId)
+        && isValidId(paymentId)
+        && isAdmin()
+        && incoming().paymentId == existing().paymentId
+        && incoming().userId == existing().userId
+        && incoming().utr == existing().utr
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'revokedReason', 'updatedAt']);
+
+      allow delete: if false;
+    }
+
+    // 5. Processing Job History (Requires Active, Non-Banned Subscription or Admin)
+    match /processingJobs/{jobId} {
+      allow get: if isVerifiedUser() && isValidId(jobId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && (existing().userId == request.auth.uid || isBootstrapAdmin());
+
+      allow create: if isVerifiedUser()
+        && isValidId(jobId)
+        && isValidProcessingJob(incoming(), jobId)
+        && incoming().createdAt == request.time
+        && (
+          isAdmin()
+          || (
+            exists(/databases/$(database)/documents/subscriptions/$(request.auth.uid))
+            && get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.status == 'active'
+            && isSubNotBanned(get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data)
+          )
+        );
+
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // 6. Admins Roster (Read-only self check; managed via console/bootstrap)
+    match /admins/{adminId} {
+      allow get: if isVerifiedUser() && isValidId(adminId) && (adminId == request.auth.uid || isBootstrapAdmin());
+      allow list, create, update, delete: if false;
+    }
+  }
+}
