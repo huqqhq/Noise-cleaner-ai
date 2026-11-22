@@ -124,7 +124,7 @@ function AppShell() {
   if (!authReady) {
     return (
       <div className="min-h-screen bg-[#0B0D11] flex items-center justify-center">
-        <div className="text-sm text-slate-400">Loading Noise Remover AI...</div>
+        <div className="text-sm text-slate-400">Loading Noise Cleaner AI...</div>
       </div>
     );
   }
@@ -162,7 +162,7 @@ function AppShell() {
             }}
             className="text-lg font-bold tracking-tight text-white whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Noise Remover AI
+            Noise Cleaner AI
           </button>
 
           {/* Zone 2: Clean Typography Nav Links */}
@@ -246,7 +246,7 @@ function AppShell() {
               </h1>
               <p className="text-sm text-slate-300 leading-relaxed">
                 Your plan was revoked <span className="font-semibold text-red-400">{revokeCount} times</span>{' '}
-                by the administrator. You can no longer submit UTR numbers or use Noise Remover AI.
+                by the administrator. You can no longer submit UTR numbers or use Noise Cleaner AI.
               </p>
             </div>
             <div className="rounded-xl bg-[#0B0D11] border border-white/[0.08] p-4 text-left space-y-1.5 text-xs">
@@ -291,7 +291,7 @@ function AppShell() {
       {/* Quiet Minimal Footer */}
       <footer className="border-t border-white/[0.06] py-5 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-          <span>Noise Remover AI · Neural Speech Isolation Studio</span>
+          <span>Noise Cleaner AI · Neural Speech Isolation Studio</span>
           <span>Support UPI: 9990232974@axl · ₹49 Monthly Plan</span>
         </div>
       </footer>

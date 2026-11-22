@@ -25,7 +25,7 @@ export function LoginGate({ onGoogleSignIn, authError }: LoginGateProps) {
       <header className="w-full border-b border-white/[0.08]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
           <span className="text-lg font-bold tracking-tight text-white whitespace-nowrap shrink-0">
-            Noise Remover AI
+            Noise Cleaner AI
           </span>
           <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
             <span className="whitespace-nowrap shrink-0">Voice Isolation</span>
@@ -147,7 +147,7 @@ export function LoginGate({ onGoogleSignIn, authError }: LoginGateProps) {
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-gradient-to-br from-[#161B26] to-[#0B0D11] text-slate-400 gap-4">
                 <AudioWaveform className="w-12 h-12 text-amber-400" />
-                <p className="text-sm font-medium text-slate-300">Noise Remover AI Studio</p>
+                <p className="text-sm font-medium text-slate-300">Noise Cleaner AI Studio</p>
               </div>
             )}
 

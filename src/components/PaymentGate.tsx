@@ -30,8 +30,8 @@ interface PaymentGateProps {
 }
 
 const UPI_PARAMS = `pa=${encodeURIComponent(MERCHANT_UPI_ID)}&pn=${encodeURIComponent(
-  'Noise Remover AI',
-)}&am=${MONTHLY_PRICE_INR}&cu=INR&tn=${encodeURIComponent('Noise Remover AI Monthly Plan')}`;
+  'Noise Cleaner AI',
+)}&am=${MONTHLY_PRICE_INR}&cu=INR&tn=${encodeURIComponent('Noise Cleaner AI Monthly Plan')}`;
 
 const GENERIC_UPI_LINK = `upi://pay?${UPI_PARAMS}`;
 
@@ -167,7 +167,7 @@ export function PaymentGate({ user, subscription, hasSelectedFile }: PaymentGate
       ctx.fillStyle = '#0B0D11';
       ctx.font = 'bold 34px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Noise Remover AI', canvas.width / 2, 86);
+      ctx.fillText('Noise Cleaner AI', canvas.width / 2, 86);
 
       ctx.fillStyle = '#475569';
       ctx.font = '600 24px sans-serif';
@@ -200,7 +200,7 @@ export function PaymentGate({ user, subscription, hasSelectedFile }: PaymentGate
       const pngUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = pngUrl;
-      link.download = 'noise-remover-ai-upi-qr-49.png';
+      link.download = 'noise-cleaner-ai-upi-qr-49.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -363,7 +363,7 @@ export function PaymentGate({ user, subscription, hasSelectedFile }: PaymentGate
             {revokeCount === 1 && (
               <p className="text-amber-300 text-xs font-medium">
                 Final Warning: If your plan is revoked 1 more time (2/2), your account will be
-                permanently blocked from submitting UTRs and using Noise Remover AI.
+                permanently blocked from submitting UTRs and using Noise Cleaner AI.
               </p>
             )}
           </div>
