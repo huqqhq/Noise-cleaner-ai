@@ -94,7 +94,7 @@ export async function verifyActiveSubscriber(idToken: string): Promise<VerifiedS
     };
   }
 
-  // 2. Fetch the user's subscription directly from Firestore using their verified ID token
+  // 2. Check Firestore only to enforce permanent bans (revokeCount >= 2); otherwise grant free access
   const dbId = config.firestoreDatabaseId || '(default)';
   const docUrl = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(
     config.projectId,
@@ -106,42 +106,25 @@ export async function verifyActiveSubscriber(idToken: string): Promise<VerifiedS
     },
   });
 
-  if (subRes.status === 404) {
-    throw new Error('SUBSCRIPTION_REQUIRED');
-  }
+  if (subRes.ok) {
+    const subDoc = (await subRes.json()) as FirestoreDocResponse;
+    const fields = subDoc.fields ?? {};
+    const revokeCount =
+      Number(fields.revokeCount?.integerValue ?? fields.revokeCount?.doubleValue ?? 0) || 0;
 
-  if (!subRes.ok) {
+    if (revokeCount >= 2) {
+      throw new Error('ACCOUNT_BANNED');
+    }
+  } else if (subRes.status !== 404) {
     const errText = await subRes.text().catch(() => '');
-    console.error('Firestore subscription check failed:', subRes.status, errText);
-    throw new Error('SUBSCRIPTION_CHECK_FAILED');
-  }
-
-  const subDoc = (await subRes.json()) as FirestoreDocResponse;
-  const fields = subDoc.fields ?? {};
-  const status = fields.status?.stringValue ?? '';
-  const utr = fields.utr?.stringValue ?? '';
-  const revokeCount =
-    Number(fields.revokeCount?.integerValue ?? fields.revokeCount?.doubleValue ?? 0) || 0;
-  const expiresAtMs =
-    Number(fields.expiresAtMs?.integerValue ?? fields.expiresAtMs?.doubleValue ?? 0) || 0;
-
-  if (revokeCount >= 2) {
-    throw new Error('ACCOUNT_BANNED');
-  }
-
-  if (status === 'revoked') {
-    throw new Error('SUBSCRIPTION_REVOKED');
-  }
-
-  if (status !== 'active' || !utr || expiresAtMs <= Date.now()) {
-    throw new Error('SUBSCRIPTION_REQUIRED');
+    console.warn('Subscription ban-check warning:', subRes.status, errText);
   }
 
   return {
     uid,
     email,
-    utr,
-    expiresAtMs,
+    utr: 'FREE_PLAN',
+    expiresAtMs: Number.MAX_SAFE_INTEGER,
     isOwner: false,
   };
 }

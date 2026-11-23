@@ -152,13 +152,13 @@ export const DIRTY_DOZEN_TESTS: DirtyDozenCase[] = [
   },
   {
     id: 10,
-    name: 'Unpaid user logging processingJob without active subscription',
+    name: 'Permanently banned user logging processingJob',
     operation: 'create',
-    path: '/processingJobs/job_unpaid_1',
-    auth: { uid: 'unpaidUser', email: 'u@example.com', email_verified: true },
+    path: '/processingJobs/job_banned_1',
+    auth: { uid: 'bannedUser2Revokes', email: 'banned@example.com', email_verified: true },
     payload: {
-      jobId: 'job_unpaid_1',
-      userId: 'unpaidUser',
+      jobId: 'job_banned_1',
+      userId: 'bannedUser2Revokes',
       fileName: 'sample.mp3',
       mediaType: 'audio',
       mode: 'balanced',

@@ -268,7 +268,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // 5. Processing Job History (Requires Active, Non-Banned Subscription or Admin)
+    // 5. Processing Job History (Allowed for all verified non-banned users under Free Plan)
     match /processingJobs/{jobId} {
       allow get: if isVerifiedUser() && isValidId(jobId) && (existing().userId == request.auth.uid || isAdmin());
       allow list: if isVerifiedUser() && (existing().userId == request.auth.uid || isBootstrapAdmin());
@@ -277,14 +277,7 @@ service cloud.firestore {
         && isValidId(jobId)
         && isValidProcessingJob(incoming(), jobId)
         && incoming().createdAt == request.time
-        && (
-          isAdmin()
-          || (
-            exists(/databases/$(database)/documents/subscriptions/$(request.auth.uid))
-            && get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.status == 'active'
-            && isSubNotBanned(get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data)
-          )
-        );
+        && (isAdmin() || isNotBanned());
 
       allow update: if false;
       allow delete: if false;

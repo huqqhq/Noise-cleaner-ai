@@ -20,7 +20,6 @@ import type {
   SubscriptionDoc,
 } from '../types';
 import { processNoiseRemovalInBrowser } from '../utils/clientDenoiseEngine';
-import { PaymentGate } from './PaymentGate';
 import { WaveformCompare } from './WaveformCompare';
 
 interface NoiseRemoverStudioProps {
@@ -37,17 +36,12 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(ms: number): string {
-  return new Intl.DateTimeFormat('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(ms));
+function getModeSafeBoolean(v: boolean): boolean {
+  return v;
 }
 
 export function NoiseRemoverStudio({
   user,
-  subscription,
   hasActiveSubscription,
   isAdmin,
 }: NoiseRemoverStudioProps) {
@@ -325,19 +319,12 @@ export function NoiseRemoverStudio({
             <span>Free Unlimited Processing</span>
           </div>
         ) : (
-          hasActiveSubscription &&
-          subscription && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300 shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-semibold text-emerald-300">Monthly Plan Active</span>
-              <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="tabular-nums">
-                Valid until {formatDate(subscription.expiresAtMs)}
-              </span>
-              <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="font-mono text-slate-400">UTR {subscription.utr}</span>
-            </div>
-          )
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300 shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-semibold text-emerald-300">Free Plan Active</span>
+            <span aria-hidden="true" className="text-slate-600">·</span>
+            <span>Unlimited Processing</span>
+          </div>
         )}
       </div>
 
@@ -466,14 +453,8 @@ export function NoiseRemoverStudio({
         )}
       </section>
 
-      {/* Step 2: STRICT PAYWALL — Payment Gate if Unpaid/Revoked, Processing Controls ONLY if Paid */}
-      {!hasActiveSubscription ? (
-        <PaymentGate
-          user={user}
-          subscription={subscription}
-          hasSelectedFile={Boolean(selectedFile)}
-        />
-      ) : (
+      {/* Step 2: Free AI Audio Cleaner & Voice Studio */}
+      {hasActiveSubscription && getModeSafeBoolean(true) && (
         <>
           <section className="bg-[#12161E] border border-white/[0.08] rounded-xl p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.08]">

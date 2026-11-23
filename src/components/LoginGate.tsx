@@ -30,7 +30,7 @@ export function LoginGate({ onGoogleSignIn, authError }: LoginGateProps) {
           <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
             <span className="whitespace-nowrap shrink-0">Voice Isolation</span>
             <span className="whitespace-nowrap shrink-0">Audio &amp; Video</span>
-            <span className="whitespace-nowrap shrink-0">₹49 Monthly Plan</span>
+            <span className="whitespace-nowrap shrink-0 text-emerald-400 font-medium">100% Free Access</span>
           </div>
           <button
             type="button"
@@ -127,9 +127,9 @@ export function LoginGate({ onGoogleSignIn, authError }: LoginGateProps) {
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                 <span>Supports MP3, WAV, M4A, MP4, MOV, MKV</span>
                 <span aria-hidden="true">·</span>
-                <span>₹49/month via PhonePe or Paytm</span>
+                <span className="text-emerald-400 font-medium">100% Free Forever</span>
                 <span aria-hidden="true">·</span>
-                <span>Instant UTR activation</span>
+                <span>No payment required</span>
               </div>
             </div>
           </div>
@@ -161,8 +161,8 @@ export function LoginGate({ onGoogleSignIn, authError }: LoginGateProps) {
                   Keep original video untouched while isolating pure speaker dialogue.
                 </p>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Upload your clip after signing in, activate your ₹49 monthly plan with UPI UTR,
-                  and download studio-clean audio or video in seconds.
+                  Upload your clip after signing in, remove fan, traffic, and horn noise, and
+                  download studio-clean audio or video completely free.
                 </p>
               </div>
             </div>

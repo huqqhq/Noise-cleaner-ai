@@ -74,9 +74,9 @@ export function HistoryView({ user, onBackToStudio }: HistoryViewProps) {
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Activity &amp; Billing</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Activity History</h1>
           <p className="text-sm text-slate-400">
-            Your processed recordings and submitted ₹49 UPI UTR records.
+            Your cleaned audio and video recordings.
           </p>
         </div>
         <button
@@ -150,24 +150,14 @@ export function HistoryView({ user, onBackToStudio }: HistoryViewProps) {
         )}
       </section>
 
-      {/* UPI UTR Receipts Table */}
-      <section className="bg-[#12161E] border border-white/[0.08] rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.08] flex items-center gap-2">
-          <Receipt className="w-4 h-4 text-amber-400" />
-          <h2 className="text-sm font-semibold text-white">UPI UTR Submissions</h2>
-        </div>
+      {/* UPI UTR Receipts Table (shown only if user has past submissions) */}
+      {payments.length > 0 && (
+        <section className="bg-[#12161E] border border-white/[0.08] rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/[0.08] flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-amber-400" />
+            <h2 className="text-sm font-semibold text-white">Past UPI UTR Submissions</h2>
+          </div>
 
-        {loading ? (
-          <div className="p-6 space-y-3">
-            {[1, 2].map((n) => (
-              <div key={n} className="h-10 rounded bg-white/[0.04] animate-pulse" />
-            ))}
-          </div>
-        ) : payments.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
-            No UPI payments submitted yet.
-          </div>
-        ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
@@ -204,8 +194,8 @@ export function HistoryView({ user, onBackToStudio }: HistoryViewProps) {
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

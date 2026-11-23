@@ -140,14 +140,7 @@ function AppShell() {
   const revokeCount = subscription?.revokeCount ?? 0;
   const isPermanentlyBanned = !isAdmin && revokeCount >= 2;
 
-  const hasActiveSubscription =
-    isAdmin ||
-    (!isPermanentlyBanned &&
-      Boolean(
-        subscription &&
-          subscription.status === 'active' &&
-          subscription.expiresAtMs > Date.now(),
-      ));
+  const hasActiveSubscription = isAdmin || !isPermanentlyBanned;
 
   return (
     <div className="min-h-screen bg-[#0B0D11] text-slate-100 flex flex-col">
@@ -292,7 +285,7 @@ function AppShell() {
       <footer className="border-t border-white/[0.06] py-5 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
           <span>Noise Cleaner AI · Neural Speech Isolation Studio</span>
-          <span>Support UPI: 9990232974@axl · ₹49 Monthly Plan</span>
+          <span>100% Free Unlimited Voice Isolation</span>
         </div>
       </footer>
     </div>
