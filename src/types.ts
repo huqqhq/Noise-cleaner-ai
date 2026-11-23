@@ -5,6 +5,15 @@ export type SubscriptionStatus = 'active' | 'revoked';
 export type IsolationMode = 'balanced' | 'maximum' | 'natural';
 export type AudioExportFormat = 'wav' | 'mp3';
 
+export interface UserProfileDoc {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL: string;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+}
+
 export interface SubscriptionDoc {
   userId: string;
   userEmail: string;
